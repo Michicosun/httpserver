@@ -6,9 +6,3 @@ void throwError(std::string pref) {
     throw HttpServerError{pref + ": " + serr};
 } 
 
-void log(const char* format_s) {
-    write(STDOUT_FILENO, format_s, strlen(format_s));
-}
-
-
-

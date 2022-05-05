@@ -14,6 +14,7 @@ static std::string endline = "\r\n";
 void makeRequest(std::stringstream& response, const std::string& body) {
     response 
         << "HTTP/1.1 200 OK" << endline
+        << "Content-Type: text/plain; charset=utf-8" << endline
         << "Accept-Ranges: bytes" << endline
         << "Content-Length: " << body.size() << endline
         << endline

@@ -23,16 +23,6 @@ struct HttpServerError {
 
 [[noreturn]] void throwError(std::string pref);
 
-template <class... Args>
-void log(const char* format_s, Args... args) {
-    char write_str[100] = {0};
-
-    snprintf(write_str, 99, format_s, args...);
-    write(STDOUT_FILENO, write_str, strlen(write_str));
-}
-
-void log(const char* format_s);
-
 HttpRequest parseRequest(int fd);
 
 void sendResponse(int fd, const HttpRequest& reques);

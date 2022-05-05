@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
+#include "utils/logger.h"
 
 #include <sys/signalfd.h>
 #include <sys/socket.h> 
@@ -73,8 +74,12 @@ std::size_t HttpServer::accept_connection() {
         NI_NUMERICHOST | NI_NUMERICSERV
     );
 
-    log( GRN "connected from:" RESET " address: %s, port: %s -> fd: %d\n", host, port, connection);
-    
+    log << GRN "connected from:" RESET 
+        " address: "<< host << 
+        ", port: " << port << 
+        " -> connection: "
+        << connection << Logger::endl;
+
     return connection; 
 }
 
@@ -100,7 +105,7 @@ bool HttpServer::run() {
                 std::size_t con = accept_connection();
                 pool.submit(con);
             } else {
-                log(RED "\rexit initialized -> joining threads...\n" RESET);
+                log << RED "\rexit initialized -> joining threads..." RESET << Logger::endl;
                 shutdown();
                 return true;
             }

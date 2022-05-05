@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+#include "utils/logger.h"
 
 bool long_log = false;
 
@@ -24,8 +25,10 @@ int main(int argc, char** argv) {
     std::size_t port;
     sscanf(argv[1], "%ld", &port);
 
-    log(GRN "server pid: " RESET "%d\n", getpid());
-    log(GRN "listening at port: " RESET "%d\n", port);
+    Logger log;
+
+    log << GRN "server pid: " RESET << getpid() << Logger::endl;
+    log << GRN "listening at port: " RESET << port << Logger::endl;
 
     std::unique_ptr<HttpServer> server;    
 
@@ -42,19 +45,19 @@ int main(int argc, char** argv) {
 
         server = std::make_unique<HttpServer>(port, mask);
     } catch(const HttpServerError& error) {
-        log(RED "ERROR: %s\n" RESET, error.why.c_str());
+        log << RED "ERROR: " << error.why << RESET << Logger::endl;
         exit(EXIT_FAILURE);
     } catch(...) {
-        log(RED "UNKNOWN ERROR\n" RESET);
+        log << RED "UNKNOWN ERROR" RESET << Logger::endl;
         exit(EXIT_FAILURE);
     }
 
     try {
         server->run();
     } catch(const HttpServerError& error) {
-        log(RED "ERROR: %s\n" RESET, error.why.c_str());
+        log << RED "ERROR: " << error.why << RESET << Logger::endl;
     } catch(...) {
-        log(RED "UNKNOWN ERROR\n" RESET);
+        log << RED "UNKNOWN ERROR" RESET << Logger::endl;
     }
 
     server->shutdown();

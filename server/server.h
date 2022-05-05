@@ -2,6 +2,7 @@
 
 #include <thread_pool/thread_pool.h>
 #include <worker/worker.h>
+#include <utils/logger.h>
 
 #include <cstddef>
 #include <string>
@@ -24,6 +25,8 @@ private:
 
     sigset_t mask;
     size_t signal_fd;
+
+    Logger log;
 
 public:
 

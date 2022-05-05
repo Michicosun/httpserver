@@ -6,6 +6,7 @@
 
 #include <cstring>
 #include <iostream>
+#include "utils/logger.h"
 
 extern bool long_log;
 
@@ -14,33 +15,23 @@ ThreadWorker::ThreadWorker(ThreadPool<std::size_t, ThreadWorker>* pool) : pool{p
 void ThreadWorker::process_client(std::size_t connection) {
     HttpRequest request = parseRequest(connection);
 
-    log("[" MAG "%d" RESET "] -> connection: %ld, request: "
-        "{" 
-        GRN "TYPE: " RESET "%s, "
-        GRN "PATH: " RESET "%s, "
-        GRN "PROTO: " RESET "%s}\n"
-        , getpid()
-        , connection
-        , request.rtype.c_str()
-        , request.path.c_str()
-        , request.proto.c_str());
+    
+    log << "[" << MAG << getpid() << RESET 
+        << "] -> connection: " << connection 
+        << ", request: " << "{" 
+        << GRN "TYPE: " RESET << request.rtype << ", "
+        << GRN "PATH: " RESET << request.path << ", "
+        << GRN "PROTO: " RESET << request.proto << "}" << Logger::endl;
     
     if (long_log) {
         for (const auto& [k, v] : request.headers) {
-            log(
-                "[" MAG "%d" RESET "] " 
-                GRN "KEY: " RESET "%s " 
-                CYN "VALUE: " RESET "%s\n"
-                , getpid()
-                , k.c_str()
-                , v.c_str());
+            log << "[" MAG << getpid() << RESET "] " 
+                << GRN "KEY: " RESET << k << " " 
+                << CYN "VALUE: " RESET << v << Logger::endl;
         }
 
-        log(
-            "[" MAG "%d" RESET "] " 
-            GRN "BODY: " RESET "%s\n"
-            , getpid()
-            , request.body.c_str());
+        log << "[" MAG << getpid() << RESET "] " 
+            << GRN "BODY: " RESET << request.body << Logger::endl;
     }
 
     sendResponse(connection, request);
@@ -62,7 +53,8 @@ void ThreadWorker::process_client(std::size_t connection) {
         NI_NUMERICHOST | NI_NUMERICSERV
     );
 
-    log(RED "closed connection" RESET " from: address: %s, port: %s\n", host, port);
+    log << RED "closed connection" RESET 
+        << " from: address: " << host <<", port: " << port << Logger::endl;
 
     close(connection);
 }
@@ -75,16 +67,11 @@ void ThreadWorker::WorkRoutine() {
                 process_client(connection.value());
             }
         } catch(const HttpServerError& error) {
-            log(
-                "[" MAG "%d" RESET "] "
-                RED "ERROR: %s\n" RESET
-                , getpid()
-                , error.why.c_str());
+            log << "[" MAG << getpid() << RESET "] " 
+                << RED "ERROR: " << error.why << RESET << Logger::endl;
         } catch(...) {
-            log(
-                "[" MAG "%d" RESET "] "
-                RED "UNKNOWN ERROR\n" RESET
-                , getpid());
+            log << "[" MAG << getpid() << RESET "] " 
+                << RED "UNKNOWN ERROR" RESET << Logger::endl;
         }
     }
 }
