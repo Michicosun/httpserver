@@ -16,7 +16,7 @@ private:
 
 private:
 
-    ThreadPool<ThreadWorker> pool;    
+    ThreadPool<std::size_t, ThreadWorker> pool;    
 
     size_t backlog;
     size_t port;

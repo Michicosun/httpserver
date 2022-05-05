@@ -5,16 +5,17 @@
 #include <netdb.h>
 
 #include <utils/helpers.h>
+#include <cstddef>
 
 class ThreadWorker {
 private:
-    ThreadPool<ThreadWorker>* pool;
+    ThreadPool<std::size_t, ThreadWorker>* pool;
 
     void process_client(std::size_t fd);
 
 public:
 
-    ThreadWorker(ThreadPool<ThreadWorker>* pool);
+    ThreadWorker(ThreadPool<std::size_t, ThreadWorker>* pool);
 
     void WorkRoutine();
 

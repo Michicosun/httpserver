@@ -5,11 +5,11 @@
 #include <blocking_queue/blocking_queue.h>
 
 
-template<class Worker>
+template<class Value, class Worker>
 class ThreadPool{
 private:
     std::vector<std::thread> threads_;
-    BlockingQueue<std::size_t> queue_;
+    BlockingQueue<Value> queue_;
     bool need_stop = false;
 
 public:
@@ -27,11 +27,11 @@ public:
         return need_stop;
     }
 
-    std::optional<std::size_t> get() {
+    std::optional<Value> get() {
         return queue_.get();
     }
 
-    void submit(std::size_t fd) {
+    void submit(const Value& fd) {
         queue_.push(fd);
     }
 

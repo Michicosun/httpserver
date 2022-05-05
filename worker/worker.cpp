@@ -1,11 +1,10 @@
-#include <unistd.h>
 #include <worker/worker.h>
 #include <thread_pool/thread_pool.h>
 #include <utils/helpers.h>
 
 #include <iostream>
 
-ThreadWorker::ThreadWorker(ThreadPool<ThreadWorker>* pool) : pool{pool} {}
+ThreadWorker::ThreadWorker(ThreadPool<std::size_t, ThreadWorker>* pool) : pool{pool} {}
 
 
 void ThreadWorker::process_client(std::size_t fd) {
