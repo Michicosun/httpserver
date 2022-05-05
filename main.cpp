@@ -1,19 +1,31 @@
 #include <server/server.h>
+#include <unistd.h>
 #include <utils/helpers.h>
 #include <cstdlib>
+#include <cstring>
 #include <memory>
 
+bool long_log = false;
+
 int main(int argc, char** argv) {
-    if (argc != 2) {
+    if (argc < 2) {
         std::cerr << "Usage: " << argv[0] << " PORT" << std::endl;
         exit(EXIT_FAILURE);
+    }
+
+    for (int i = 2; i < argc; ++i) {
+        if (strcmp(argv[i], "-e") == 0) long_log = 1;
+        else {
+            std::cerr << "Unknown parameter: " << argv[i] << std::endl;
+            exit(EXIT_FAILURE);
+        }
     }
 
     std::size_t port;
     sscanf(argv[1], "%ld", &port);
 
-    std::cout << "my pid: " << getpid() << std::endl;
-    std::cout << "listening at port: " << port << std::endl;
+    log(GRN "server pid: " RESET "%d\n", getpid());
+    log(GRN "listening at port: " RESET "%d\n", port);
 
     std::unique_ptr<HttpServer> server;    
 
@@ -37,16 +49,15 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-    bool need_exit = false;
-    while (!need_exit) {
-        try {
-            need_exit = server->run();
-        } catch(const HttpServerError& error) {
-            log(RED "ERROR: %s\n" RESET, error.why.c_str());
-        } catch(...) {
-            log(RED "UNKNOWN ERROR\n" RESET);
-        }
+    try {
+        server->run();
+    } catch(const HttpServerError& error) {
+        log(RED "ERROR: %s\n" RESET, error.why.c_str());
+    } catch(...) {
+        log(RED "UNKNOWN ERROR\n" RESET);
     }
+
+    server->shutdown();
 
     return 0;
 }

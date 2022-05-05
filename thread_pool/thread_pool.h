@@ -40,6 +40,7 @@ public:
         for (auto& el : threads_) {
             el.join();
         }
+        threads_.clear();
     }
 
 };

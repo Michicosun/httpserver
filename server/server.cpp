@@ -93,7 +93,7 @@ bool HttpServer::run() {
     epoll_ctl(efd, EPOLL_CTL_ADD, lfd, &eev);    
 
     while (true) {
-        int ready_cnt = epoll_pwait(efd, &eev, 2, 1, &mask);
+        int ready_cnt = epoll_pwait(efd, &eev, 2, 1000, &mask);
         if (ready_cnt > 0) {
             int ready_fd = eev.data.fd;
             if (ready_fd == lfd) {

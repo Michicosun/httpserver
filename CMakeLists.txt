@@ -20,7 +20,6 @@ foreach(comp IN LISTS LIBS)
     target_include_directories(lib_${comp} PUBLIC ${PROJECT_SOURCE_DIR})
 endforeach()
 
-
 message(STATUS "CONFIGURE HTTPSERVER BUILD")
 message(STATUS "HTTPSERVER PATH = ${PROJECT_SOURCE_DIR}")
 
