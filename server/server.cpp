@@ -1,21 +1,21 @@
-#include <netinet/in.h>
+#include <bits/types/sigset_t.h>
 #include <server/server.h>
+#include <utils/helpers.h>
+
+#include <netinet/in.h>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
 #include <cerrno>
 
+#include <sys/signalfd.h>
 #include <sys/socket.h> 
+#include <sys/epoll.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
 
-void HttpServer::throwError(std::string pref) {
-    char* err = std::strerror(errno);
-    std::string serr(err);
-    throw HttpServerError{pref + ": " + serr};
-} 
 
 void HttpServer::create_listener(std::size_t port) {
     int fd = socket(PF_INET, SOCK_STREAM, 0);
@@ -44,12 +44,18 @@ void HttpServer::create_listener(std::size_t port) {
     lfd = fd;
 }
 
-
-
-HttpServer::HttpServer(size_t port, size_t backlog) : 
+HttpServer::HttpServer(size_t port, sigset_t mask, size_t backlog) : 
     pool(std::thread::hardware_concurrency()), 
     backlog{backlog}, 
-    port{port} {}
+    port{port},
+    mask{mask} 
+{
+    signal_fd = signalfd(-1, &mask, 0);
+
+    if (signal_fd < 0) {
+        throwError("signalfd");
+    }
+}
 
 std::size_t HttpServer::accept_connection() {
     struct sockaddr_storage client;
@@ -67,19 +73,43 @@ std::size_t HttpServer::accept_connection() {
         NI_NUMERICHOST | NI_NUMERICSERV
     );
 
-    char write_str[120] = {0};
-    sprintf(write_str, "connected from: address: %s, port: %s\n", host, port);
-    write(STDOUT_FILENO, write_str, strlen(write_str));
+    log( GRN "connected from:" RESET " address: %s, port: %s -> fd: %d\n", host, port, connection);
     
     return connection; 
 }
 
-void HttpServer::run() {
+bool HttpServer::run() {
     create_listener(port);
 
-    while (std::size_t con = accept_connection()) {
-        pool.submit(con);
-    }    
+    int efd = epoll_create1(0);
 
-    exit(0);
+    struct epoll_event eev = {};
+    eev.events = EPOLLIN;
+    eev.data.fd = signal_fd;
+    epoll_ctl(efd, EPOLL_CTL_ADD, signal_fd, &eev);
+
+    eev.events = EPOLLIN;
+    eev.data.fd = lfd;
+    epoll_ctl(efd, EPOLL_CTL_ADD, lfd, &eev);    
+
+    while (true) {
+        int ready_cnt = epoll_pwait(efd, &eev, 2, 1, &mask);
+        if (ready_cnt > 0) {
+            int ready_fd = eev.data.fd;
+            if (ready_fd == lfd) {
+                std::size_t con = accept_connection();
+                pool.submit(con);
+            } else {
+                log(RED "\rexit initialized -> joining threads...\n" RESET);
+                shutdown();
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void HttpServer::shutdown() {
+    pool.join();
 }
