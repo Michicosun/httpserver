@@ -1,6 +1,7 @@
 #include <utils/helpers.h>
 #include <unistd.h>
 #include <cstddef>
+#include <cstdlib>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -20,58 +21,51 @@ std::string readAllHeaders(std::size_t fd) {
     return request.substr(0, request.size() - 2);
 }
 
-void parseLine(const std::string& line, HttpRequest& req) {
-    if (!req.correct) {
+void parseLine(const std::string& line, HttpRequest& request) {
+    if (!request.correct) {
         return;
     }
 
     int colon_index = line.find(":");
 
     if (colon_index == std::string::npos) {
-        req.correct = false;
+        request.correct = false;
         return;
     } 
 
     std::string key = line.substr(0, colon_index);
     std::string value = line.substr(colon_index + 1, line.size() - colon_index - 2);
 
-    req.headers[key] = value;
+    request.headers[key] = value;
 }
 
-void parseFirstLine(const std::string& line, HttpRequest& req) {
-    char* method = nullptr;
-    char* path = nullptr;
-    char* protocol = nullptr;
+void parseFirstLine(const std::string& line, HttpRequest& request) {
+    std::stringstream words(line);
 
-    if (sscanf(line.c_str(), "%ms %ms %ms", &method, &path, &protocol) != 3) {
-        delete method;
-        delete path;
-        delete protocol;
-        return;
+    words >> request.rtype >> request.path >> request.proto;
+
+    if (request.rtype.empty() || request.path.empty() || request.proto.empty()) {
+        request.correct = false;
     }
-
-    req.rtype = std::string(method);
-    req.path = std::string(path);
-    req.proto = std::string(protocol);
 }
 
 HttpRequest parseRequest(int fd) {
     std::string s = readAllHeaders(fd);
 
-    HttpRequest req = {.correct = true};
+    HttpRequest request = {.correct = true};
 
     std::stringstream ss(s);
     std::string line;
 
     std::getline(ss, line);
-    parseFirstLine(line, req);
+    parseFirstLine(line, request);
 
     while (std::getline(ss, line) && !line.empty()) {
-        parseLine(line, req);
+        parseLine(line, request);
     }
 
-    auto it = req.headers.find("Content-Length");
-    if (it != req.headers.end()) {
+    auto it = request.headers.find("Content-Length");
+    if (it != request.headers.end()) {
         std::size_t body_len = std::stoi(it->second);
 
         while (body_len > 0) {
@@ -79,15 +73,15 @@ HttpRequest parseRequest(int fd) {
             int err = read(fd, &c, sizeof(c));
 
             if (err < 0) {
-                req.correct = false;
+                request.correct = false;
                 break;
             } else if (err == 1) {
-                req.body.push_back(c);
+                request.body.push_back(c);
                 --body_len;
             }
         }
     }
 
-    return req;
+    return request;
 }
 
