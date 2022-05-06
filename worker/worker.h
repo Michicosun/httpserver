@@ -14,6 +14,8 @@ private:
 
     void process_client(std::size_t fd);
 
+    std::string getId();
+
     Logger log;
 
 public:

@@ -4,19 +4,30 @@
 #include <thread_pool/thread_pool.h>
 #include <utils/helpers.h>
 
+#include <cstddef>
 #include <cstring>
 #include <iostream>
+#include <string>
 #include "utils/logger.h"
 
 extern bool long_log;
 
 ThreadWorker::ThreadWorker(ThreadPool<std::size_t, ThreadWorker>* pool) : pool{pool} {}
 
+std::string ThreadWorker::getId() {
+    std::size_t id = std::hash<std::thread::id>{}(std::this_thread::get_id());
+    std::string sid = std::to_string(id);
+    if (sid.size() <= 5) {
+        return sid;
+    }
+    return sid.substr(0, 5);
+}
+
 void ThreadWorker::process_client(std::size_t connection) {
     HttpRequest request = parseRequest(connection);
 
     
-    log << "[" << MAG << getpid() << RESET 
+    log << "[" << MAG << getId() << RESET 
         << "] -> connection: " << connection 
         << ", request: " << "{" 
         << GRN "TYPE: " RESET << request.rtype << ", "
@@ -25,12 +36,12 @@ void ThreadWorker::process_client(std::size_t connection) {
     
     if (long_log) {
         for (const auto& [k, v] : request.headers) {
-            log << "[" MAG << getpid() << RESET "] " 
+            log << "[" MAG << getId() << RESET "] " 
                 << GRN "KEY: " RESET << k << " " 
                 << CYN "VALUE: " RESET << v << Logger::endl;
         }
 
-        log << "[" MAG << getpid() << RESET "] " 
+        log << "[" MAG << getId() << RESET "] " 
             << GRN "BODY: " RESET << request.body << Logger::endl;
     }
 
@@ -67,10 +78,10 @@ void ThreadWorker::WorkRoutine() {
                 process_client(connection.value());
             }
         } catch(const HttpServerError& error) {
-            log << "[" MAG << getpid() << RESET "] " 
+            log << "[" MAG << getId() << RESET "] " 
                 << RED "ERROR: " << error.why << RESET << Logger::endl;
         } catch(...) {
-            log << "[" MAG << getpid() << RESET "] " 
+            log << "[" MAG << getId() << RESET "] " 
                 << RED "UNKNOWN ERROR" RESET << Logger::endl;
         }
     }

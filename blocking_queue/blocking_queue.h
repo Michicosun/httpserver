@@ -37,7 +37,9 @@ public:
 
     std::optional<Value> get() {
         std::unique_lock lock(mutex);
-        not_empty.wait_for(lock, timeout);
+        if (buffer_.empty()) {
+            not_empty.wait_for(lock, timeout);
+        }
         return extractElement();
     }
 };
