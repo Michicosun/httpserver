@@ -3,6 +3,8 @@
 #include <utils/helpers.h>
 #include <utils/logger.h>
 
+#include <thread>
+
 #include <sys/socket.h>
 
 extern bool long_log;
@@ -10,7 +12,7 @@ extern bool long_log;
 ThreadWorker::ThreadWorker(ThreadPool<std::size_t, ThreadWorker>* pool) : pool{pool} {}
 
 std::string ThreadWorker::getId() {
-    std::size_t id = std::hash<typename std::thread::id>{}(std::this_thread::get_id());
+    std::size_t id = std::hash<std::thread::id>{}(std::this_thread::get_id());
     std::string sid = std::to_string(id);
     if (sid.size() <= 5) {
         return sid;
