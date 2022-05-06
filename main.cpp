@@ -1,10 +1,8 @@
 #include <server/server.h>
-#include <unistd.h>
 #include <utils/helpers.h>
-#include <cstdlib>
-#include <cstring>
-#include <memory>
-#include "utils/logger.h"
+#include <utils/logger.h>
+
+#include <iostream>
 
 bool long_log = false;
 

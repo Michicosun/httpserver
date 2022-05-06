@@ -1,12 +1,10 @@
-#include <unistd.h>
 #include <utils/types.h>
 #include <utils/helpers.h>
-#include <cstring>
 #include <sstream>
-
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
 #include <fcntl.h>
 
 static std::string endline = "\r\n";

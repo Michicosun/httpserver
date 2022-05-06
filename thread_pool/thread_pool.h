@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <vector>
 #include <blocking_queue/blocking_queue.h>
 

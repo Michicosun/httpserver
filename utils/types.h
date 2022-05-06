@@ -3,8 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <sys/socket.h>
-
 struct HttpRequest {
     std::string rtype;
     std::string path;

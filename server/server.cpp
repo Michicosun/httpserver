@@ -1,21 +1,9 @@
-#include <bits/types/sigset_t.h>
 #include <server/server.h>
 #include <utils/helpers.h>
-
-#include <netinet/in.h>
-#include <cstddef>
-#include <cstdio>
-#include <cstring>
-#include <cerrno>
-#include "utils/logger.h"
+#include <utils/logger.h>
 
 #include <sys/signalfd.h>
-#include <sys/socket.h> 
 #include <sys/epoll.h>
-#include <sys/types.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
 
 
 void HttpServer::create_listener(std::size_t port) {
