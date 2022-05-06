@@ -11,7 +11,7 @@
 
 static std::string endline = "\r\n";
 
-void makeRequest(std::stringstream& response, const std::string& body) {
+void makeResponse(std::stringstream& response, const std::string& body) {
     response 
         << "HTTP/1.1 200 OK" << endline
         << "Content-Type: text/plain; charset=utf-8" << endline
@@ -26,7 +26,7 @@ void GETRequest(std::stringstream& response, const HttpRequest& request) {
 
     int fd = open(path, O_RDONLY);
     if (fd < 0) {
-        makeRequest(response, std::strerror(errno));
+        makeResponse(response, std::strerror(errno));
         return;
     }
 
@@ -37,7 +37,7 @@ void GETRequest(std::stringstream& response, const HttpRequest& request) {
         file_content.push_back(c);
     }
 
-    makeRequest(response, file_content);
+    makeResponse(response, file_content);
 
     close(fd);
 }
@@ -47,7 +47,7 @@ void POSTRequest(std::stringstream& response, const HttpRequest& request) {
 
     int fd = open(path, O_WRONLY | O_CREAT, 0600);
     if (fd < 0) {
-        makeRequest(response, std::strerror(errno));
+        makeResponse(response, std::strerror(errno));
         return;
     }
 
@@ -58,7 +58,7 @@ void POSTRequest(std::stringstream& response, const HttpRequest& request) {
 
     close(fd);
 
-    makeRequest(response, "Done");
+    makeResponse(response, "Done");
 }
 
 void PUTRequest(std::stringstream& response, const HttpRequest& request) {
@@ -66,7 +66,7 @@ void PUTRequest(std::stringstream& response, const HttpRequest& request) {
 
     int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0600);
     if (fd < 0) {
-        makeRequest(response, std::strerror(errno));
+        makeResponse(response, std::strerror(errno));
         return;
     }
 
@@ -77,22 +77,22 @@ void PUTRequest(std::stringstream& response, const HttpRequest& request) {
 
     close(fd);
 
-    makeRequest(response, "Done");
+    makeResponse(response, "Done");
 }
 
 void DELETERequest(std::stringstream& response, const HttpRequest& request) {
     const char* path = request.path.c_str() + 1;    
 
     if (remove(path) < 0){
-        makeRequest(response, std::strerror(errno));
+        makeResponse(response, std::strerror(errno));
         return;
     }
 
-    makeRequest(response, "Done");
+    makeResponse(response, "Done");
 }
 
 void UnknownRequest(std::stringstream& response, const HttpRequest& request) {
-    makeRequest(response, (request.rtype + " Not Implemented").c_str());
+    makeResponse(response, (request.rtype + " Not Implemented").c_str());
 }
 
 void sendResponse(int connection, const HttpRequest& request) {
