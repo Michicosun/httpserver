@@ -11,24 +11,24 @@ class HttpServer {
 private:
     void create_listener(std::size_t port);
 
-    std::size_t accept_connection();
+    int accept_connection();
 
 private:
 
-    ThreadPool<std::size_t, ThreadWorker> pool;    
+    ThreadPool<int, ThreadWorker> pool;    
 
-    size_t backlog;
-    size_t port;
-    size_t lfd;
+    std::size_t backlog;
+    std::size_t port;
+    int lfd;
 
     sigset_t mask;
-    size_t signal_fd;
+    int signal_fd;
 
     Logger log;
 
 public:
 
-    HttpServer(size_t port, sigset_t mask, size_t backlog = 5);
+    HttpServer(std::size_t port, sigset_t mask, std::size_t backlog = 5);
 
     bool run();
 

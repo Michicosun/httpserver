@@ -1,4 +1,5 @@
 #include <worker/worker.h>
+#include <utils/fd_handler.h>
 #include <thread_pool/thread_pool.h>
 #include <utils/helpers.h>
 #include <utils/logger.h>
@@ -9,7 +10,7 @@
 
 extern bool long_log;
 
-ThreadWorker::ThreadWorker(ThreadPool<std::size_t, ThreadWorker>* pool) : pool{pool} {}
+ThreadWorker::ThreadWorker(ThreadPool<int, ThreadWorker>* pool) : pool{pool} {}
 
 std::string ThreadWorker::getId() {
     std::size_t id = std::hash<std::thread::id>{}(std::this_thread::get_id());
@@ -20,12 +21,13 @@ std::string ThreadWorker::getId() {
     return sid.substr(0, 5);
 }
 
-void ThreadWorker::process_client(std::size_t connection) {
-    HttpRequest request = parseRequest(connection);
+void ThreadWorker::process_client(int connection) {
+    FdHandler handler(connection);
 
+    HttpRequest request = parseRequest(handler.getFd());
     
     log << "[" << MAG << getId() << RESET 
-        << "] -> connection: " << connection 
+        << "] -> connection: " << handler.getFd() 
         << ", request: " << "{" 
         << GRN "TYPE: " RESET << request.rtype << ", "
         << GRN "PATH: " RESET << request.path << ", "
@@ -42,11 +44,11 @@ void ThreadWorker::process_client(std::size_t connection) {
             << GRN "BODY: " RESET << request.body << Logger::endl;
     }
 
-    sendResponse(connection, request);
+    sendResponse(handler.getFd(), request);
 
     struct sockaddr_in client = {};
     socklen_t len = sizeof(client);
-    if (getpeername(connection, (struct sockaddr *)&client, &len) < 0) {
+    if (getpeername(handler.getFd(), (struct sockaddr *)&client, &len) < 0) {
         throwError("getpeername");
     }
             
@@ -63,8 +65,6 @@ void ThreadWorker::process_client(std::size_t connection) {
 
     log << RED "closed connection" RESET 
         << " from: address: " << host <<", port: " << port << Logger::endl;
-
-    close(connection);
 }
 
 void ThreadWorker::WorkRoutine() {

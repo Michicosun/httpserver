@@ -1,4 +1,5 @@
 #include <server/server.h>
+#include <unistd.h>
 #include <utils/helpers.h>
 #include <utils/logger.h>
 
@@ -33,7 +34,7 @@ void HttpServer::create_listener(std::size_t port) {
     lfd = fd;
 }
 
-HttpServer::HttpServer(size_t port, sigset_t mask, size_t backlog) : 
+HttpServer::HttpServer(std::size_t port, sigset_t mask, std::size_t backlog) : 
     pool(std::thread::hardware_concurrency()), 
     backlog{backlog}, 
     port{port},
@@ -46,10 +47,14 @@ HttpServer::HttpServer(size_t port, sigset_t mask, size_t backlog) :
     }
 }
 
-std::size_t HttpServer::accept_connection() {
+int HttpServer::accept_connection() {
     struct sockaddr_storage client;
     socklen_t len = sizeof(client);
     int connection = accept(lfd, reinterpret_cast<struct sockaddr*>(&client), &len);
+
+    if (connection < 0) {
+        throwError("accept");
+    }
 
     char host[100], port[10];
     getnameinfo(
@@ -90,7 +95,7 @@ bool HttpServer::run() {
         if (ready_cnt > 0) {
             int ready_fd = eev.data.fd;
             if (ready_fd == lfd) {
-                std::size_t con = accept_connection();
+                int con = accept_connection();
                 pool.submit(con);
             } else {
                 log << RED "\rexit initialized -> joining threads..." RESET << Logger::endl;
@@ -105,4 +110,7 @@ bool HttpServer::run() {
 
 void HttpServer::shutdown() {
     pool.join();
+    
+    close(lfd);
+    close(signal_fd);
 }

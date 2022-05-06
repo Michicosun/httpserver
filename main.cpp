@@ -2,12 +2,24 @@
 #include <utils/helpers.h>
 #include <utils/logger.h>
 
+#include <cctype>
 #include <iostream>
+#include <string>
 
 bool long_log = false;
 
-int main(int argc, char** argv) {
-    if (argc < 2) {
+bool checkPort(const char* param) {
+    while (*param != '\0') {
+        if (!isdigit(*param)) {
+            return false;
+        }
+        ++param;
+    }
+    return true;
+}
+
+int main(int argc, const char** argv) {
+    if (argc < 2 || !checkPort(argv[1])) {
         std::cerr << "Usage: " << argv[0] << " PORT" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -20,8 +32,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    std::size_t port;
-    sscanf(argv[1], "%ld", &port);
+    std::size_t port = std::stoi(argv[1]);
 
     Logger log;
 

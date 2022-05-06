@@ -1,7 +1,7 @@
 #include <utils/helpers.h>
 #include <sstream>
 
-std::string readAllHeaders(std::size_t fd) {
+std::string readAllHeaders(int fd) {
     std::string request;
     
     char c;

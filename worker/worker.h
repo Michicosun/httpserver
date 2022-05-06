@@ -10,9 +10,9 @@
 
 class ThreadWorker {
 private:
-    ThreadPool<std::size_t, ThreadWorker>* pool;
+    ThreadPool<int, ThreadWorker>* pool;
 
-    void process_client(std::size_t fd);
+    void process_client(int fd);
 
     std::string getId();
 
@@ -20,7 +20,7 @@ private:
 
 public:
 
-    ThreadWorker(ThreadPool<std::size_t, ThreadWorker>* pool);
+    ThreadWorker(ThreadPool<int, ThreadWorker>* pool);
 
     void WorkRoutine();
 

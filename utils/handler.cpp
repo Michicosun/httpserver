@@ -1,5 +1,7 @@
 #include <utils/types.h>
 #include <utils/helpers.h>
+#include <utils/fd_handler.h>
+
 #include <sstream>
 
 #include <sys/types.h>
@@ -22,8 +24,8 @@ void makeResponse(std::stringstream& response, const std::string& body) {
 void GETRequest(std::stringstream& response, const HttpRequest& request) {
     const char* path = request.path.c_str() + 1;    
 
-    int fd = open(path, O_RDONLY);
-    if (fd < 0) {
+    FdHandler fd(open(path, O_RDONLY));
+    if (fd.getFd() < 0) {
         makeResponse(response, std::strerror(errno));
         return;
     }
@@ -31,30 +33,26 @@ void GETRequest(std::stringstream& response, const HttpRequest& request) {
     std::string file_content;
 
     char c;
-    while (read(fd, &c, sizeof(c)) == 1 && c != EOF) {
+    while (read(fd.getFd(), &c, sizeof(c)) == 1 && c != EOF) {
         file_content.push_back(c);
     }
 
     makeResponse(response, file_content);
-
-    close(fd);
 }
 
 void POSTRequest(std::stringstream& response, const HttpRequest& request) {
     const char* path = request.path.c_str() + 1;    
 
-    int fd = open(path, O_WRONLY | O_CREAT, 0600);
-    if (fd < 0) {
+    FdHandler fd(open(path, O_WRONLY | O_CREAT | O_TRUNC, 0600));
+    if (fd.getFd() < 0) {
         makeResponse(response, std::strerror(errno));
         return;
     }
 
     int cnt = 0;
     while (cnt < request.body.size()) {
-        cnt += write(fd, request.body.c_str() + cnt, request.body.size() - cnt);
+        cnt += write(fd.getFd(), request.body.c_str() + cnt, request.body.size() - cnt);
     }
-
-    close(fd);
 
     makeResponse(response, "Done");
 }
@@ -62,18 +60,16 @@ void POSTRequest(std::stringstream& response, const HttpRequest& request) {
 void PUTRequest(std::stringstream& response, const HttpRequest& request) {
     const char* path = request.path.c_str() + 1;    
 
-    int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0600);
-    if (fd < 0) {
+    FdHandler fd(open(path, O_WRONLY | O_CREAT | O_APPEND, 0600));
+    if (fd.getFd() < 0) {
         makeResponse(response, std::strerror(errno));
         return;
     }
 
     int cnt = 0;
     while (cnt < request.body.size()) {
-        cnt += write(fd, request.body.c_str() + cnt, request.body.size() - cnt);
+        cnt += write(fd.getFd(), request.body.c_str() + cnt, request.body.size() - cnt);
     }
-
-    close(fd);
 
     makeResponse(response, "Done");
 }
