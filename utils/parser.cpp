@@ -21,7 +21,7 @@ void parseLine(const std::string& line, HttpRequest& request) {
         return;
     }
 
-    int colon_index = line.find(":");
+    auto colon_index = line.find(":");
 
     if (colon_index == std::string::npos) {
         request.correct = false;

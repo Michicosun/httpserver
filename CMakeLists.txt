@@ -3,7 +3,12 @@ cmake_minimum_required(VERSION 3.14)
 project(httpserver)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_FLAGS "-std=c++20 -pthread -g -Wthread-safety -Wall -Werror")
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS "-std=c++17 -pthread -g -Wall -Werror")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set(CMAKE_CXX_FLAGS "-std=c++17 -pthread -g -Wthread-safety -Wall -Werror")
+endif ()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

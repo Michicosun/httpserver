@@ -2,6 +2,7 @@
 #include <utils/helpers.h>
 #include <utils/fd_handler.h>
 
+#include <cstddef>
 #include <sstream>
 
 #include <sys/types.h>
@@ -49,7 +50,7 @@ void POSTRequest(std::stringstream& response, const HttpRequest& request) {
         return;
     }
 
-    int cnt = 0;
+    std::size_t cnt = 0;
     while (cnt < request.body.size()) {
         cnt += write(fd.getFd(), request.body.c_str() + cnt, request.body.size() - cnt);
     }
@@ -66,7 +67,7 @@ void PUTRequest(std::stringstream& response, const HttpRequest& request) {
         return;
     }
 
-    int cnt = 0;
+    std::size_t cnt = 0;
     while (cnt < request.body.size()) {
         cnt += write(fd.getFd(), request.body.c_str() + cnt, request.body.size() - cnt);
     }

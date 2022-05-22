@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
 #include <blocking_queue/blocking_queue.h>
-
+#include <cstddef>
+#include <vector>
+#include <thread>
 
 template<class Value, class Worker>
 class ThreadPool{
@@ -14,7 +15,7 @@ private:
 public:
 
     ThreadPool(std::size_t thread_count) : queue_(std::chrono::seconds(1)) {
-        for (int i = 0; i < thread_count; ++i) {
+        for (std::size_t i = 0; i < thread_count; ++i) {
             threads_.emplace_back([this] () {
                 Worker worker(this);
                 worker.WorkRoutine();
